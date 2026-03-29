@@ -313,25 +313,55 @@ function SettingsScreen({ cfg, setCfg, onBack }: { cfg: GameConfig; setCfg: (fn:
 
         {tab==='music' && <div>
           <h2 style={{fontSize:24,fontWeight:800,marginBottom:12}}>🎵 Đoán nhạc</h2>
-          <p style={{fontSize:14,color:'var(--mute)',marginBottom:20}}>Nhạc random không trùng. Đáp án ẩn, có nút khui.</p>
+          <p style={{fontSize:14,color:'var(--mute)',marginBottom:20}}>Nhạc random không trùng. Đáp án ẩn, có nút khui. Dán link <b>hoặc</b> tải file mp3 lên.</p>
           {cfg.musicQs.map((m,i)=><div key={i} style={CS}>
-            <div style={{display:'flex',gap:10,marginBottom:8}}>
-              <input value={m.url} placeholder="Link nhạc (URL)" onChange={e=>{const n=[...cfg.musicQs];n[i]={...n[i],url:e.target.value};u('musicQs',n)}} style={{...IS,flex:1,fontSize:14}}/>
+            <div style={{display:'flex',gap:10,marginBottom:8,alignItems:'center'}}>
+              <input value={m.url} placeholder="Link nhạc (URL) hoặc tải file ↓" onChange={e=>{const n=[...cfg.musicQs];n[i]={...n[i],url:e.target.value};u('musicQs',n)}} style={{...IS,flex:1,fontSize:14}}/>
+              <label className="btn-hover" style={{padding:'10px 16px',fontSize:13,fontWeight:700,background:'#6c5ce715',color:'var(--accent)',border:'2px solid var(--accent)',borderRadius:10,cursor:'pointer',whiteSpace:'nowrap'}}>
+                📁 Tải file
+                <input type="file" accept="audio/*" style={{display:'none'}} onChange={e=>{
+                  const file = e.target.files?.[0]
+                  if(!file) return
+                  if(file.size > 5*1024*1024) { alert('File quá lớn! Tối đa 5MB.'); return }
+                  const reader = new FileReader()
+                  reader.onload = () => {
+                    const n=[...cfg.musicQs]
+                    n[i]={...n[i], url: reader.result as string, title: n[i].title || file.name.replace(/\.[^.]+$/,'')}
+                    u('musicQs',n)
+                  }
+                  reader.readAsDataURL(file)
+                }}/>
+              </label>
               <button onClick={()=>u('musicQs',cfg.musicQs.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'var(--red)',fontWeight:700,cursor:'pointer'}}>Xóa</button>
             </div>
+            {m.url && <div style={{marginBottom:8}}><audio controls src={m.url} style={{width:'100%',height:36}}/></div>}
             <input value={m.title} placeholder="Tên bài / đáp án (ẩn khi chơi)" onChange={e=>{const n=[...cfg.musicQs];n[i]={...n[i],title:e.target.value};u('musicQs',n)}} style={{...IS,fontSize:14,background:'#f0fdf4'}}/>
           </div>)}
           <button onClick={()=>u('musicQs',[...cfg.musicQs,{url:'',title:''}])} className="btn-hover" style={{padding:'10px 24px',fontSize:14,fontWeight:700,background:'var(--accent)',color:'#fff',border:'none',borderRadius:12,marginTop:8}}>+ Thêm</button>
         </div>}
 
-        {(tab==='reward'||tab==='penalty') && <WheelEditor items={tab==='reward'?cfg.rewardWheel:cfg.penaltyWheel} onChange={v=>u(tab==='reward'?'rewardWheel':'penaltyWheel',v)} label={tab==='reward'?'Vòng quay Thưởng':'Vòng quay Phạt'} isPenalty={tab==='penalty'}/>}
-
         {tab==='bg' && <div>
           <h2 style={{fontSize:24,fontWeight:800,marginBottom:16}}>🔊 Nhạc nền (loop)</h2>
-          <p style={{fontSize:14,color:'var(--mute)',marginBottom:20}}>Dán link mp3. Tự phát lặp khi vào game.</p>
-          <input value={cfg.bgMusic||''} placeholder="Link nhạc nền (URL mp3)" onChange={e=>u('bgMusic',e.target.value)} style={{...IS}}/>
-          {cfg.bgMusic && <audio controls loop src={cfg.bgMusic} style={{width:'100%',marginTop:16}}/>}
+          <p style={{fontSize:14,color:'var(--mute)',marginBottom:20}}>Dán link mp3 hoặc tải file lên. Tự phát lặp khi vào game.</p>
+          <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:16}}>
+            <input value={(cfg.bgMusic||'').startsWith('data:') ? '(File đã tải lên)' : cfg.bgMusic||''} placeholder="Link nhạc nền (URL mp3)" onChange={e=>u('bgMusic',e.target.value)} style={{...IS,flex:1}} readOnly={(cfg.bgMusic||'').startsWith('data:')}/>
+            <label className="btn-hover" style={{padding:'12px 20px',fontSize:14,fontWeight:700,background:'#6c5ce715',color:'var(--accent)',border:'2px solid var(--accent)',borderRadius:12,cursor:'pointer',whiteSpace:'nowrap'}}>
+              📁 Tải file
+              <input type="file" accept="audio/*" style={{display:'none'}} onChange={e=>{
+                const file = e.target.files?.[0]
+                if(!file) return
+                if(file.size > 5*1024*1024) { alert('File quá lớn! Tối đa 5MB.'); return }
+                const reader = new FileReader()
+                reader.onload = () => u('bgMusic', reader.result as string)
+                reader.readAsDataURL(file)
+              }}/>
+            </label>
+            {cfg.bgMusic && <button onClick={()=>u('bgMusic','')} style={{background:'none',border:'none',color:'var(--red)',fontWeight:700,cursor:'pointer'}}>Xóa</button>}
+          </div>
+          {cfg.bgMusic && <audio controls loop src={cfg.bgMusic} style={{width:'100%'}}/>}
         </div>}
+
+        {(tab==='reward'||tab==='penalty') && <WheelEditor items={tab==='reward'?cfg.rewardWheel:cfg.penaltyWheel} onChange={v=>u(tab==='reward'?'rewardWheel':'penaltyWheel',v)} label={tab==='reward'?'Vòng quay Thưởng':'Vòng quay Phạt'} isPenalty={tab==='penalty'}/>}
       </div>
     </div>
   )
@@ -339,21 +369,36 @@ function SettingsScreen({ cfg, setCfg, onBack }: { cfg: GameConfig; setCfg: (fn:
 
 function WheelEditor({ items, onChange, label, isPenalty }: { items: WheelItem[]; onChange: (v: WheelItem[]) => void; label: string; isPenalty: boolean }) {
   const types = isPenalty
-    ? [{v:'pts',l:'Điểm'},{v:'none',l:'Không gì'},{v:'give',l:'Tặng'},{v:'quiz',l:'Thử thách'},{v:'music',l:'Đoán nhạc'}]
-    : [{v:'pts',l:'Điểm'},{v:'none',l:'Không gì'}]
-  const IS: React.CSSProperties = {padding:'12px 16px',fontSize:15,border:'2px solid #e2e8f0',borderRadius:12,fontFamily:'Nunito'}
+    ? [{v:'pts',l:'Điểm (+/-)'},{v:'none',l:'Không có gì'},{v:'give',l:'Tặng điểm'},{v:'quiz',l:'Thử thách'},{v:'music',l:'Đoán nhạc'}]
+    : [{v:'pts',l:'Điểm (+/-)'},{v:'none',l:'Không có gì'}]
+  const totalW = items.reduce((s,it) => s + (it.weight||1), 0)
   return <div>
     <h2 style={{fontSize:24,fontWeight:800,marginBottom:20}}>{label}</h2>
-    {items.map((it,i)=><div key={i} style={{display:'flex',gap:10,alignItems:'center',marginBottom:12}}>
-      <input type="color" value={it.color} onChange={e=>{const n=[...items];n[i]={...n[i],color:e.target.value};onChange(n)}} style={{width:44,height:44,border:'none',borderRadius:10,cursor:'pointer'}}/>
-      <input value={it.label} onChange={e=>{const n=[...items];n[i]={...n[i],label:e.target.value};onChange(n)}} style={{...IS,flex:1}}/>
-      <select value={it.type} onChange={e=>{const n=[...items];n[i]={...n[i],type:e.target.value};onChange(n)}} style={{...IS,fontSize:14}}>{types.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}</select>
-      <input type="number" value={it.value} onChange={e=>{const n=[...items];n[i]={...n[i],value:+e.target.value};onChange(n)}} style={{...IS,width:70,textAlign:'center'}}/>
-      <span style={{fontSize:13,color:'var(--mute)'}}>Tỉ lệ:</span>
-      <input type="number" value={it.weight||1} min={1} onChange={e=>{const n=[...items];n[i]={...n[i],weight:Math.max(1,+e.target.value)};onChange(n)}} style={{...IS,width:55,textAlign:'center'}}/>
-      <button onClick={()=>onChange(items.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'var(--red)',fontWeight:700,cursor:'pointer'}}>X</button>
-    </div>)}
-    <button onClick={()=>onChange([...items,{label:'Mới',type:'pts',value:10,color:'#6c5ce7',weight:1}])} className="btn-hover" style={{marginTop:12,padding:'12px 28px',fontSize:15,fontWeight:700,background:'var(--accent)',color:'#fff',border:'none',borderRadius:12}}>+ Thêm ô</button>
+    <div style={{display:'grid',gridTemplateColumns:'48px 1fr 140px 80px 100px 36px',gap:8,alignItems:'center',marginBottom:12,padding:'0 4px'}}>
+      <span style={{fontSize:12,fontWeight:700,color:'var(--mute)',textAlign:'center'}}>Màu</span>
+      <span style={{fontSize:12,fontWeight:700,color:'var(--mute)'}}>Tên ô</span>
+      <span style={{fontSize:12,fontWeight:700,color:'var(--mute)'}}>Loại</span>
+      <span style={{fontSize:12,fontWeight:700,color:'var(--mute)',textAlign:'center'}}>Điểm</span>
+      <span style={{fontSize:12,fontWeight:700,color:'var(--mute)',textAlign:'center'}}>Tỉ lệ %</span>
+      <span></span>
+    </div>
+    {items.map((it,i) => {
+      const pct = Math.round((it.weight||1) / totalW * 100)
+      return <div key={i} style={{display:'grid',gridTemplateColumns:'48px 1fr 140px 80px 100px 36px',gap:8,alignItems:'center',marginBottom:8,background:'#fff',padding:'10px 12px',borderRadius:14,border:'2px solid #e2e8f0'}}>
+        <input type="color" value={it.color} onChange={e=>{const n=[...items];n[i]={...n[i],color:e.target.value};onChange(n)}} style={{width:40,height:40,border:'none',borderRadius:10,cursor:'pointer'}}/>
+        <input value={it.label} onChange={e=>{const n=[...items];n[i]={...n[i],label:e.target.value};onChange(n)}} style={{padding:'10px 14px',fontSize:15,border:'2px solid #e2e8f0',borderRadius:10,fontFamily:'Nunito',width:'100%'}}/>
+        <select value={it.type} onChange={e=>{const n=[...items];n[i]={...n[i],type:e.target.value};onChange(n)}} style={{padding:'10px 8px',fontSize:14,border:'2px solid #e2e8f0',borderRadius:10,fontFamily:'Nunito'}}>
+          {types.map(t=><option key={t.v} value={t.v}>{t.l}</option>)}
+        </select>
+        <input type="number" value={it.value} onChange={e=>{const n=[...items];n[i]={...n[i],value:+e.target.value};onChange(n)}} style={{padding:'10px 8px',fontSize:15,border:'2px solid #e2e8f0',borderRadius:10,fontFamily:'Nunito',textAlign:'center',width:'100%'}}/>
+        <div style={{display:'flex',alignItems:'center',gap:6,justifyContent:'center'}}>
+          <input type="number" value={it.weight||1} min={1} max={20} onChange={e=>{const n=[...items];n[i]={...n[i],weight:Math.max(1,+e.target.value)};onChange(n)}} style={{padding:'10px 6px',fontSize:15,border:'2px solid #e2e8f0',borderRadius:10,fontFamily:'Nunito',textAlign:'center',width:50}}/>
+          <span style={{fontSize:13,fontWeight:700,color:'var(--accent)',minWidth:36}}>{pct}%</span>
+        </div>
+        <button onClick={()=>onChange(items.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'var(--red)',fontWeight:800,cursor:'pointer',fontSize:18}}>✕</button>
+      </div>
+    })}
+    <button onClick={()=>onChange([...items,{label:'Mới',type:'pts',value:10,color:'#6c5ce7',weight:1}])} className="btn-hover" style={{marginTop:14,padding:'12px 28px',fontSize:15,fontWeight:700,background:'var(--accent)',color:'#fff',border:'none',borderRadius:12}}>+ Thêm ô</button>
   </div>
 }
 
@@ -442,9 +487,9 @@ export default function App() {
     try {
       // Clear stale data from old versions
       const ver = LS.get('version')
-      if (ver !== 2) {
+      if (ver !== 3) {
         LS.del('gameState'); LS.del('config')
-        LS.set('version', 2)
+        LS.set('version', 3)
       }
       const saved = LS.get('config')
       if (saved && saved.teams && saved.questions) setCfg(saved)
@@ -527,27 +572,75 @@ export default function App() {
           const nm = new Set(matched); nm.add(c1.id); nm.add(c2.id); setMatched(nm)
           resolveMatch(c1, [c1.id, c2.id])
         } else {
-          // Check if either new card matches ANY previously face-up unmatched card
-          const allUp = [...nf].filter(id => !matched.has(id))
-          let found = false
-          for(const fid of allUp) {
-            if(fid===c1.id||fid===c2.id) continue
+          // Check BOTH cards against all previously face-up unmatched cards
+          const prevUp = [...nf].filter(id => !matched.has(id) && id !== c1.id && id !== c2.id)
+          
+          let match1: CardData | null = null // match for c1
+          let match2: CardData | null = null // match for c2
+          
+          for(const fid of prevUp) {
             const fc = cards.find(c=>c.id===fid)!
-            // Match by matchKey: same kind for specials, same pid for normals
-            if(fc.matchKey === c1.matchKey) {
-              const nm=new Set(matched);nm.add(fc.id);nm.add(c1.id);setMatched(nm)
-              resolveMatch(c1,[fc.id,c1.id]);found=true;break
-            }
-            if(fc.matchKey === c2.matchKey) {
-              const nm=new Set(matched);nm.add(fc.id);nm.add(c2.id);setMatched(nm)
-              resolveMatch(c2,[fc.id,c2.id]);found=true;break
-            }
+            if(!match1 && fc.matchKey === c1.matchKey) match1 = fc
+            if(!match2 && fc.matchKey === c2.matchKey && fc.id !== match1?.id) match2 = fc
           }
-          if(!found){notify('Chưa khớp! Thẻ vẫn ngửa.','info');setTimeout(()=>endTurn(),1600)}
+          
+          if(match1 && match2) {
+            // BOTH cards match different previous cards! Score both, endTurn once.
+            const nm = new Set(matched)
+            nm.add(match1.id); nm.add(c1.id); nm.add(match2.id); nm.add(c2.id)
+            setMatched(nm)
+            // Score first match
+            const pts1 = scorePts(c1)
+            addPts(team.id, pts1)
+            animateCard(c1, [match1.id, c1.id])
+            if(c1.kind==='jackpot') fireConfetti()
+            if(c1.kind==='bomb') fireBomb()
+            // Score second match after delay
+            setTimeout(() => {
+              const pts2 = scorePts(c2)
+              addPts(team.id, pts2)
+              animateCard(c2, [match2!.id, c2.id])
+              if(c2.kind==='jackpot') fireConfetti()
+              if(c2.kind==='bomb') fireBomb()
+              // Show combined result
+              const totalPts = pts1 + pts2
+              const hasSpecial = c1.kind!=='normal' || c2.kind!=='normal'
+              if(hasSpecial) {
+                setSpecialFX({type: (c1.kind==='jackpot'||c2.kind==='jackpot') ? 'jackpot' : 'bomb', pts: totalPts})
+              }
+              notify(`🎯 COMBO x2! ${totalPts>0?'+':''}${totalPts}đ`, totalPts>0?'gold':'bomb')
+              showFloat(totalPts, totalPts>0?'#f39c12':'#e74c3c')
+            }, 1200)
+            // EndTurn once after everything
+            setTimeout(() => endTurn(), 4000)
+          } else if(match1) {
+            // Only c1 matches a previous card
+            const nm = new Set(matched); nm.add(match1.id); nm.add(c1.id); setMatched(nm)
+            resolveMatch(c1, [match1.id, c1.id])
+          } else if(match2) {
+            // Only c2 matches a previous card
+            const nm = new Set(matched); nm.add(match2.id); nm.add(c2.id); setMatched(nm)
+            resolveMatch(c2, [match2.id, c2.id])
+          } else {
+            notify('Chưa khớp! Thẻ vẫn ngửa.','info')
+            setTimeout(()=>endTurn(),1600)
+          }
         }
         setPicks([])
       }, 900)
     }
+  }
+
+  // Helpers for card scoring
+  const scorePts = (card: CardData): number => {
+    if(card.kind==='jackpot') return mp(100)
+    if(card.kind==='bomb') return mp(-30)
+    return mp(10)
+  }
+  const animateCard = (card: CardData, ids: number[]) => {
+    if(card.kind==='jackpot') setCardAnim(prev=>{const n={...prev};ids.forEach(id=>n[id]='jackpotGlow 1.5s ease infinite');return n})
+    else if(card.kind==='bomb') setCardAnim(prev=>{const n={...prev};ids.forEach(id=>n[id]='bombExplode .8s ease');return n})
+    else setCardAnim(prev=>{const n={...prev};ids.forEach(id=>n[id]='scalePop .5s ease');return n})
   }
 
   // Special effect overlays
