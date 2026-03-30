@@ -937,7 +937,7 @@ export default function App() {
         </div>}
         {q.type==='open'&&<div style={{textAlign:'center'}}>
           {!showOpenAns ? (
-            <button onClick={()=>setShowOpenAns(true)} className="btn-hover" style={{padding:'16px 40px',fontSize:20,fontWeight:800,background:'#6c5ce715',color:'var(--accent)',border:'2px solid var(--accent)',borderRadius:16}}>👁️ Khui đáp án</button>
+            <button onClick={()=>{setTimerOn(false);setShowOpenAns(true)}} className="btn-hover" style={{padding:'16px 40px',fontSize:20,fontWeight:800,background:'#6c5ce715',color:'var(--accent)',border:'2px solid var(--accent)',borderRadius:16}}>👁️ Khui đáp án</button>
           ) : (
             <div>
               <div style={{background:'#fef3c7',padding:'16px 28px',borderRadius:14,marginBottom:16,animation:'scaleIn .3s ease',display:'inline-block'}}>
