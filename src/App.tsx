@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
 import confetti from 'canvas-confetti'
+import { uploadMusic } from './supabase'
 
 // ══════ TYPES ══════
 type QType = 'mc' | 'tf' | 'open'
@@ -29,54 +30,70 @@ const DEF_TEAMS: Team[] = [
 ]
 
 const DEF_QS: Question[] = [
-  // ═══ VÒNG 1: NHẬN BIẾT + HIỂU (Câu 1-10) ═══
+  // ═══ VÒNG 1 (Câu 1-12) ═══
   {id:1,round:1,type:'tf',text:'Động lực là sự thôi thúc chủ quan dẫn đến hành động của con người nhằm đáp ứng những nhu cầu của họ.',answer:true},
-  {id:2,round:1,type:'mc',text:'Theo Frederick Winslow Taylor, yếu tố nào sau đây là động lực chính thúc đẩy nhân viên làm việc?',options:['Quan hệ xã hội trong tổ chức','Lương cao và hệ thống thưởng theo sản lượng','Sự tôn trọng từ đồng nghiệp','Nhu cầu tự khẳng định bản thân'],answer:1},
-  {id:3,round:1,type:'tf',text:'Lý thuyết tâm lý xã hội (thực nghiệm Hawthorne) cho rằng lương là yếu tố duy nhất quyết định động lực làm việc của nhân viên.',answer:false},
-  {id:4,round:1,type:'mc',text:'Tháp nhu cầu của Abraham Maslow được chia thành bao nhiêu bậc?',options:['3 bậc','4 bậc','5 bậc','6 bậc'],answer:2},
-  {id:5,round:1,type:'open',text:'Theo Maslow, nhu cầu ăn, uống, mặc, nhà ở... thuộc bậc nhu cầu thấp nhất, gọi là nhu cầu gì?',answer:'Sinh lý'},
-  {id:6,round:1,type:'mc',text:'Thuyết ERG của Clayton Alderfer phân chia nhu cầu con người thành bao nhiêu nhóm?',options:['2 nhóm','3 nhóm','4 nhóm','5 nhóm'],answer:1},
-  {id:7,round:1,type:'tf',text:'Thuyết ERG của Alderfer cho rằng con người chỉ có thể theo đuổi một loại nhu cầu tại một thời điểm nhất định.',answer:false},
-  {id:8,round:1,type:'mc',text:'Theo David McClelland, con người có ba nhu cầu cơ bản thúc đẩy hành động. Đó là:',options:['Sinh lý, an toàn và xã hội','Thành đạt, liên minh và quyền lực','Tồn tại, quan hệ và phát triển','Lương thưởng, phúc lợi và môi trường'],answer:1},
-  {id:9,round:1,type:'open',text:'Theo thuyết Herzberg, lương bổng thuộc nhóm yếu tố _______, còn cơ hội thăng tiến thuộc nhóm yếu tố _______.',answer:'Duy trì — Động viên'},
-  {id:10,round:1,type:'tf',text:'Theo thuyết Herzberg, khi các yếu tố duy trì (lương, điều kiện làm việc) được đảm bảo tốt, nhân viên sẽ tự động có động lực cao.',answer:false},
+  {id:2,round:1,type:'mc',text:'Theo Frederick Winslow Taylor, yếu tố nào là động lực chính thúc đẩy nhân viên?',options:['Quan hệ xã hội trong tổ chức','Lương cao và thưởng theo sản lượng','Sự tôn trọng từ đồng nghiệp','Nhu cầu tự khẳng định bản thân'],answer:1},
+  {id:3,round:1,type:'tf',text:'Lý thuyết Hawthorne cho rằng lương là yếu tố duy nhất quyết định động lực làm việc.',answer:false},
+  {id:4,round:1,type:'mc',text:'Tháp nhu cầu Maslow được chia thành bao nhiêu bậc?',options:['3 bậc','4 bậc','5 bậc','6 bậc'],answer:2},
+  {id:5,round:1,type:'open',text:'Theo Maslow, nhu cầu ăn, uống, mặc, nhà ở thuộc bậc thấp nhất, gọi là nhu cầu gì?',answer:'Sinh lý'},
+  {id:6,round:1,type:'mc',text:'Thuyết ERG của Alderfer phân chia nhu cầu thành bao nhiêu nhóm?',options:['2 nhóm','3 nhóm','4 nhóm','5 nhóm'],answer:1},
+  {id:7,round:1,type:'tf',text:'Thuyết ERG cho rằng con người chỉ có thể theo đuổi một loại nhu cầu tại một thời điểm.',answer:false},
+  {id:8,round:1,type:'mc',text:'Theo McClelland, ba nhu cầu cơ bản thúc đẩy hành động là:',options:['Sinh lý, an toàn và xã hội','Thành đạt, liên minh và quyền lực','Tồn tại, quan hệ và phát triển','Lương thưởng, phúc lợi và môi trường'],answer:1},
+  {id:9,round:1,type:'open',text:'Theo Herzberg, lương bổng thuộc nhóm yếu tố _______, còn cơ hội thăng tiến thuộc nhóm yếu tố _______.',answer:'Duy trì — Động viên'},
+  {id:10,round:1,type:'tf',text:'Theo Herzberg, khi yếu tố duy trì (lương, điều kiện) được đảm bảo, nhân viên sẽ tự động có động lực cao.',answer:false},
+  {id:11,round:1,type:'mc',text:'Sinh viên nỗ lực hoàn thành xuất sắc dự án vì muốn được công nhận năng lực. Theo Maslow, đây là nhu cầu nào?',options:['Nhu cầu xã hội','Nhu cầu được tôn trọng','Nhu cầu an toàn','Nhu cầu tự khẳng định'],answer:1},
+  {id:12,round:1,type:'tf',text:'Theo Adams, nếu thành viên đóng góp nhiều nhưng điểm bằng người ít làm, họ sẽ nỗ lực gấp đôi ở dự án sau.',answer:false},
 
-  // ═══ VÒNG 2: HIỂU + PHÂN TÍCH (Câu 11-20) ═══
-  {id:11,round:2,type:'mc',text:'Nhà tâm lý học nào đã xây dựng thuyết mong đợi vào năm 1964?',options:['Frederick Herzberg','Clayton Alderfer','Victor H. Vroom','J. Stacy Adams'],answer:2},
-  {id:12,round:2,type:'tf',text:'Theo thuyết công bằng của Adams, khi người lao động cảm thấy mức đãi ngộ không tương xứng so với đồng nghiệp, năng suất có xu hướng giảm.',answer:true},
-  {id:13,round:2,type:'mc',text:'Công thức "Động lực = Sức hấp dẫn của phần thưởng × Niềm tin vào khả năng đạt kết quả" thuộc thuyết nào?',options:['Thuyết Maslow','Thuyết Herzberg','Thuyết mong đợi Vroom','Thuyết công bằng Adams'],answer:2},
-  {id:14,round:2,type:'mc',text:'Điểm khác biệt cơ bản nhất giữa thuyết ERG (Alderfer) và thuyết Maslow là gì?',options:['ERG có nhiều bậc hơn Maslow','ERG cho phép đồng thời theo đuổi nhiều nhóm nhu cầu','ERG không đề cập nhu cầu sinh lý','ERG chỉ áp dụng cho cấp quản lý'],answer:1},
-  {id:15,round:2,type:'open',text:'Người được xem là cha đẻ của lý thuyết quản lý khoa học, đặt nền móng cho lý thuyết động lực cổ điển, là Frederick Winslow _______.',answer:'Taylor'},
-  {id:16,round:2,type:'tf',text:'Thuyết Porter-Lawler: khi nhân viên nhận phần thưởng hợp lý tương xứng kết quả, họ sẽ thỏa mãn và tiếp tục nỗ lực.',answer:true},
-  {id:17,round:2,type:'mc',text:'Trong mô hình Porter-Lawler, yếu tố nào KHÔNG thuộc các thành phần?',options:['Khả năng thực hiện nhiệm vụ','Nhận thức về vai trò và nhiệm vụ','Phần thưởng nội tại và ngoại tại','Phong cách lãnh đạo độc đoán'],answer:3},
-  {id:18,round:2,type:'mc',text:'Thuyết nào cho rằng động lực xuất phát từ việc so sánh tỉ lệ đóng góp/lợi ích của mình với người khác?',options:['Thuyết Maslow','Thuyết Vroom','Thuyết công bằng Adams','Thuyết cổ điển Taylor'],answer:2},
-  {id:19,round:2,type:'mc',text:'Hiệu quả lãnh đạo chịu ảnh hưởng của bao nhiêu yếu tố chính?',options:['2 yếu tố','3 yếu tố','4 yếu tố','5 yếu tố'],answer:2},
-  {id:20,round:2,type:'tf',text:'Một nhà lãnh đạo dù có ý chí mạnh mẽ nhưng không nhận định đúng tình huống vẫn có thể đạt hiệu quả cao.',answer:false},
+  // ═══ VÒNG 2 (Câu 13-24) ═══
+  {id:13,round:2,type:'mc',text:'Nhà tâm lý học nào xây dựng thuyết mong đợi vào năm 1964?',options:['Frederick Herzberg','Clayton Alderfer','Victor H. Vroom','J. Stacy Adams'],answer:2},
+  {id:14,round:2,type:'tf',text:'Theo thuyết công bằng Adams, khi đãi ngộ không tương xứng so với đồng nghiệp, năng suất có xu hướng giảm.',answer:true},
+  {id:15,round:2,type:'mc',text:'"Động lực = Sức hấp dẫn × Niềm tin vào khả năng đạt kết quả" thuộc thuyết nào?',options:['Thuyết Maslow','Thuyết Herzberg','Thuyết mong đợi Vroom','Thuyết công bằng Adams'],answer:2},
+  {id:16,round:2,type:'mc',text:'Điểm khác biệt cơ bản nhất giữa ERG và Maslow?',options:['ERG có nhiều bậc hơn','ERG cho phép đồng thời theo đuổi nhiều nhóm nhu cầu','ERG không đề cập sinh lý','ERG chỉ cho cấp quản lý'],answer:1},
+  {id:17,round:2,type:'open',text:'Cha đẻ lý thuyết quản lý khoa học, nền móng động lực cổ điển, là Frederick Winslow _______.',answer:'Taylor'},
+  {id:18,round:2,type:'tf',text:'Porter-Lawler: nhân viên nhận phần thưởng hợp lý tương xứng kết quả → thỏa mãn → tiếp tục nỗ lực.',answer:true},
+  {id:19,round:2,type:'mc',text:'Trong mô hình Porter-Lawler, yếu tố nào KHÔNG thuộc thành phần?',options:['Khả năng thực hiện nhiệm vụ','Nhận thức về vai trò','Phần thưởng nội tại và ngoại tại','Phong cách lãnh đạo độc đoán'],answer:3},
+  {id:20,round:2,type:'mc',text:'Thuyết nào cho rằng động lực từ việc so sánh đóng góp/lợi ích của mình với người khác?',options:['Thuyết Maslow','Thuyết Vroom','Thuyết công bằng Adams','Thuyết Taylor'],answer:2},
+  {id:21,round:2,type:'mc',text:'Hiệu quả lãnh đạo chịu ảnh hưởng bao nhiêu yếu tố chính?',options:['2 yếu tố','3 yếu tố','4 yếu tố','5 yếu tố'],answer:2},
+  {id:22,round:2,type:'tf',text:'Nhà lãnh đạo dù có ý chí mạnh nhưng không nhận định đúng vẫn đạt hiệu quả cao.',answer:false},
+  {id:23,round:2,type:'open',text:'Theo Vroom, để có động lực, phần thưởng phải có _______ đối với cá nhân.',answer:'Sức hấp dẫn'},
+  {id:24,round:2,type:'tf',text:'Theo McClelland, người có "nhu cầu thành đạt" cao thường thích nhiệm vụ cực kỳ khó, rủi ro rất cao.',answer:false},
 
-  // ═══ VÒNG 3: LÃNH ĐẠO + VẬN DỤNG (Câu 21-30) ═══
-  {id:21,round:3,type:'open',text:'Yếu tố quan trọng hàng đầu giúp nhà lãnh đạo xác định đúng mục tiêu và hướng đi cho tổ chức là gì?',answer:'Nhận định đúng'},
-  {id:22,round:3,type:'mc',text:'Kinh nghiệm của nhà lãnh đạo ảnh hưởng đến hiệu quả chủ yếu theo hướng nào?',options:['Chỉ có giá trị với lãnh đạo trẻ','Giúp lựa chọn phương pháp và phong cách phù hợp','Có thể thay thế hoàn toàn nhận định đúng','Không quan trọng bằng bằng cấp học thuật'],answer:1},
-  {id:23,round:3,type:'tf',text:'Nhà lãnh đạo nên áp dụng cùng một phong cách thống nhất cho toàn bộ nhân viên, bất kể trình độ.',answer:false},
-  {id:24,round:3,type:'mc',text:'Khi nhân viên có trình độ chuyên môn cao, nhà lãnh đạo nên điều chỉnh theo hướng nào?',options:['Tăng cường kiểm soát chặt','Áp dụng phong cách dân chủ, trao quyền','Giữ nguyên phong cách hiện tại','Áp dụng lãnh đạo độc đoán'],answer:1},
-  {id:25,round:3,type:'open',text:'Bốn yếu tố ảnh hưởng hiệu quả lãnh đạo: nhận định đúng, kinh nghiệm, trình độ NV và _______.',answer:'Quan hệ với đồng nghiệp'},
-  {id:26,round:3,type:'mc',text:'Anh Nam — quản đốc mới, toàn bộ NV trình độ thấp, chưa quen quy trình. Phong cách nào phù hợp nhất?',options:['Tự do — ít can thiệp','Dân chủ — giao quyền nhiều','Giám sát chặt, hướng dẫn cụ thể từng bước','Không cần quản lý'],answer:2},
-  {id:27,round:3,type:'tf',text:'Thuyết Maslow và thuyết ERG của Alderfer đều phân chia nhu cầu con người thành 5 bậc.',answer:false},
-  {id:28,round:3,type:'mc',text:'Chị Lan làm ngang đồng nghiệp nhưng lương thấp hơn → giảm nhiệt tình. Giải thích bởi thuyết nào?',options:['Thuyết Maslow','Thuyết Herzberg','Thuyết công bằng Adams','Thuyết mong đợi Vroom'],answer:2},
-  {id:29,round:3,type:'open',text:'Theo Porter-Lawler, để NV nỗ lực cần: phần thưởng hấp dẫn + NV phải có _______ để hoàn thành.',answer:'Khả năng thực hiện nhiệm vụ'},
-  {id:30,round:3,type:'mc',text:'Công ty liên tục đổi chiến lược sai, không lắng nghe nội bộ, thua lỗ. Hai yếu tố lãnh đạo nào thiếu hụt?',options:['Kinh nghiệm và trình độ NV','Nhận định đúng và quan hệ với đồng nghiệp','Trình độ NV và kinh nghiệm','Không yếu tố nào thiếu'],answer:1},
+  // ═══ VÒNG 3 (Câu 25-36) ═══
+  {id:25,round:3,type:'open',text:'Yếu tố quan trọng hàng đầu giúp nhà lãnh đạo xác định đúng mục tiêu và hướng đi là gì?',answer:'Nhận định đúng'},
+  {id:26,round:3,type:'mc',text:'Kinh nghiệm lãnh đạo ảnh hưởng hiệu quả chủ yếu theo hướng nào?',options:['Chỉ giá trị với lãnh đạo trẻ','Giúp chọn phương pháp và phong cách phù hợp','Thay thế hoàn toàn nhận định đúng','Không bằng bằng cấp học thuật'],answer:1},
+  {id:27,round:3,type:'tf',text:'Nhà lãnh đạo nên áp dụng cùng phong cách cho toàn bộ nhân viên, bất kể trình độ.',answer:false},
+  {id:28,round:3,type:'mc',text:'Khi NV có trình độ chuyên môn cao, lãnh đạo nên:',options:['Tăng kiểm soát chặt','Áp dụng dân chủ, trao quyền','Giữ nguyên phong cách','Áp dụng độc đoán'],answer:1},
+  {id:29,round:3,type:'open',text:'Bốn yếu tố ảnh hưởng hiệu quả lãnh đạo: nhận định đúng, kinh nghiệm, trình độ NV và _______.',answer:'Quan hệ với đồng nghiệp'},
+  {id:30,round:3,type:'mc',text:'Anh Nam — quản đốc mới, NV trình độ thấp. Phong cách nào phù hợp?',options:['Tự do — ít can thiệp','Dân chủ — giao quyền','Giám sát chặt, hướng dẫn cụ thể','Không cần quản lý'],answer:2},
+  {id:31,round:3,type:'tf',text:'Maslow và ERG đều phân chia nhu cầu thành 5 bậc.',answer:false},
+  {id:32,round:3,type:'mc',text:'Chị Lan làm ngang đồng nghiệp nhưng lương thấp hơn → giảm nhiệt tình. Thuyết nào giải thích?',options:['Maslow','Herzberg','Công bằng Adams','Mong đợi Vroom'],answer:2},
+  {id:33,round:3,type:'open',text:'Theo Porter-Lawler, để NV nỗ lực cần: phần thưởng hấp dẫn + NV phải có _______ để hoàn thành.',answer:'Khả năng thực hiện nhiệm vụ'},
+  {id:34,round:3,type:'mc',text:'Nhóm phân công rõ, tài liệu đủ, không gian thoải mái nhưng vẫn thụ động. Theo Herzberg, thiếu yếu tố nào?',options:['Yếu tố duy trì','Yếu tố động viên','Yếu tố sinh lý','Yếu tố liên kết'],answer:1},
+  {id:35,round:3,type:'mc',text:'Công ty đổi chiến lược sai, không lắng nghe nội bộ, thua lỗ. Hai yếu tố lãnh đạo nào thiếu?',options:['Kinh nghiệm + trình độ NV','Nhận định đúng + quan hệ đồng nghiệp','Trình độ NV + kinh nghiệm','Không yếu tố nào'],answer:1},
+  {id:36,round:3,type:'open',text:'Theo ERG, khi nhu cầu Phát triển bị cản trở, người ta quay sang thỏa mãn nhu cầu bậc thấp hơn. Nguyên lý _______.',answer:'Thất vọng - thoái lui'},
 ]
 
 const DEF_REWARD: WheelItem[] = [
-  {label:'+15đ',type:'pts',value:15,color:'#00b894',weight:1},{label:'+10đ',type:'pts',value:10,color:'#0984e3',weight:1},
-  {label:'Rất tiếc!',type:'none',value:0,color:'#b2bec3',weight:1},{label:'+20đ',type:'pts',value:20,color:'#6c5ce7',weight:1},
-  {label:'+10đ',type:'pts',value:10,color:'#fdcb6e',weight:1},{label:'+5đ',type:'pts',value:5,color:'#00cec9',weight:1},
-  {label:'Rất tiếc!',type:'none',value:0,color:'#b2bec3',weight:1},{label:'+25đ',type:'pts',value:25,color:'#fd79a8',weight:1},
+  {label:'Nổ Hũ +100đ',type:'pts',value:100,color:'#f1c40f',weight:3},
+  {label:'+80đ',type:'pts',value:80,color:'#bdc3c7',weight:3},
+  {label:'+60đ',type:'pts',value:60,color:'#e67e22',weight:3},
+  {label:'+50đ',type:'pts',value:50,color:'#6c5ce7',weight:6},
+  {label:'+40đ',type:'pts',value:40,color:'#e74c3c',weight:6},
+  {label:'+30đ',type:'pts',value:30,color:'#00cec9',weight:6},
+  {label:'XUI Z NÍ',type:'none',value:0,color:'#95a5a6',weight:5},
+  {label:'+20đ',type:'pts',value:20,color:'#fd79a8',weight:5},
 ]
 const DEF_PENALTY: WheelItem[] = [
-  {label:'-10đ',type:'pts',value:-10,color:'#ff6b6b',weight:1},{label:'Thoát phạt!',type:'none',value:0,color:'#00b894',weight:1},
-  {label:'Tặng 10đ',type:'give',value:10,color:'#fdcb6e',weight:1},{label:'-5đ',type:'pts',value:-5,color:'#e17055',weight:1},
-  {label:'Câu hỏi phạt',type:'quiz',value:-15,color:'#6c5ce7',weight:1},{label:'Thoát!',type:'none',value:0,color:'#55efc4',weight:1},
-  {label:'🎵 Đoán nhạc',type:'music',value:-10,color:'#fd79a8',weight:1},{label:'Tặng 15đ',type:'give',value:15,color:'#ffeaa7',weight:1},
+  {label:'Nổ Bom -100đ',type:'pts',value:-100,color:'#e74c3c',weight:4},
+  {label:'Thoát phạt!',type:'none',value:0,color:'#00b894',weight:4},
+  {label:'Tặng 50đ',type:'give',value:50,color:'#fdcb6e',weight:2},
+  {label:'-30đ',type:'pts',value:-30,color:'#e17055',weight:4},
+  {label:'Câu hỏi phạt',type:'quiz',value:-15,color:'#6c5ce7',weight:6},
+  {label:'-50đ',type:'pts',value:-50,color:'#00b894',weight:4},
+  {label:'🎵 Đoán nhạc',type:'music',value:-15,color:'#fd79a8',weight:6},
+  {label:'Tặng 30đ',type:'give',value:30,color:'#ffeaa7',weight:4},
+  {label:'-40đ',type:'pts',value:-40,color:'#2d3436',weight:4},
+  {label:'-60đ',type:'pts',value:-60,color:'#0984e3',weight:4},
 ]
 const DEF_TRIVIA: TriviaQ[] = [
   {q:'(MC tự đặt câu hỏi)',a:'(MC tự phán)'},
@@ -100,8 +117,8 @@ const NORMALS = [
 ]
 
 const RC: Record<number,{name:string;timer:number;mult:number;bomb:boolean;jack:boolean}> = {
-  1:{name:'Khởi động',timer:15,mult:1,bomb:false,jack:false},
-  2:{name:'Tăng tốc',timer:15,mult:2,bomb:true,jack:false},
+  1:{name:'Khởi động',timer:20,mult:1,bomb:false,jack:false},
+  2:{name:'Tăng tốc',timer:20,mult:2,bomb:true,jack:false},
   3:{name:'Sinh tử',timer:20,mult:3,bomb:true,jack:true},
 }
 
@@ -326,20 +343,26 @@ function SettingsScreen({ cfg, setCfg, onBack }: { cfg: GameConfig; setCfg: (fn:
           <p style={{fontSize:14,color:'var(--mute)',marginBottom:20}}>Nhạc random không trùng. Đáp án ẩn, có nút khui. Dán link <b>hoặc</b> tải file mp3 lên.</p>
           {cfg.musicQs.map((m,i)=><div key={i} style={CS}>
             <div style={{display:'flex',gap:10,marginBottom:8,alignItems:'center'}}>
-              <input value={m.url} placeholder="Link nhạc (URL) hoặc tải file ↓" onChange={e=>{const n=[...cfg.musicQs];n[i]={...n[i],url:e.target.value};u('musicQs',n)}} style={{...IS,flex:1,fontSize:14}}/>
+              <input value={(m.url||'').startsWith('data:') ? '(File đã tải lên)' : m.url||''} placeholder="Link nhạc (URL) hoặc tải file ↓" onChange={e=>{if(!(m.url||'').startsWith('data:')){const n=[...cfg.musicQs];n[i]={...n[i],url:e.target.value};u('musicQs',n)}}} readOnly={(m.url||'').startsWith('data:')} style={{...IS,flex:1,fontSize:14}}/>
               <label className="btn-hover" style={{padding:'10px 16px',fontSize:13,fontWeight:700,background:'#6c5ce715',color:'var(--accent)',border:'2px solid var(--accent)',borderRadius:10,cursor:'pointer',whiteSpace:'nowrap'}}>
                 📁 Tải file
-                <input type="file" accept="audio/*" style={{display:'none'}} onChange={e=>{
+                <input type="file" accept="audio/*" style={{display:'none'}} onChange={async e=>{
                   const file = e.target.files?.[0]
                   if(!file) return
-                  if(file.size > 5*1024*1024) { alert('File quá lớn! Tối đa 5MB.'); return }
-                  const reader = new FileReader()
-                  reader.onload = () => {
-                    const n=[...cfg.musicQs]
-                    n[i]={...n[i], url: reader.result as string, title: n[i].title || file.name.replace(/\.[^.]+$/,'')}
-                    u('musicQs',n)
+                  if(file.size > 15*1024*1024) { alert('File quá lớn! Tối đa 15MB.'); return }
+                  // Try Supabase first
+                  const sbUrl = await uploadMusic(file)
+                  if(sbUrl) {
+                    const n=[...cfg.musicQs]; n[i]={...n[i], url:sbUrl, title:n[i].title||file.name.replace(/\.[^.]+$/,'')}; u('musicQs',n)
+                  } else {
+                    // Fallback: base64 (max ~5MB practical)
+                    if(file.size > 5*1024*1024) { alert('Supabase chưa cấu hình. File base64 tối đa 5MB.'); return }
+                    const reader = new FileReader()
+                    reader.onload = () => {
+                      const n=[...cfg.musicQs]; n[i]={...n[i], url:reader.result as string, title:n[i].title||file.name.replace(/\.[^.]+$/,'')}; u('musicQs',n)
+                    }
+                    reader.readAsDataURL(file)
                   }
-                  reader.readAsDataURL(file)
                 }}/>
               </label>
               <button onClick={()=>u('musicQs',cfg.musicQs.filter((_,j)=>j!==i))} style={{background:'none',border:'none',color:'var(--red)',fontWeight:700,cursor:'pointer'}}>Xóa</button>
@@ -357,13 +380,18 @@ function SettingsScreen({ cfg, setCfg, onBack }: { cfg: GameConfig; setCfg: (fn:
             <input value={(cfg.bgMusic||'').startsWith('data:') ? '(File đã tải lên)' : cfg.bgMusic||''} placeholder="Link nhạc nền (URL mp3)" onChange={e=>u('bgMusic',e.target.value)} style={{...IS,flex:1}} readOnly={(cfg.bgMusic||'').startsWith('data:')}/>
             <label className="btn-hover" style={{padding:'12px 20px',fontSize:14,fontWeight:700,background:'#6c5ce715',color:'var(--accent)',border:'2px solid var(--accent)',borderRadius:12,cursor:'pointer',whiteSpace:'nowrap'}}>
               📁 Tải file
-              <input type="file" accept="audio/*" style={{display:'none'}} onChange={e=>{
+              <input type="file" accept="audio/*" style={{display:'none'}} onChange={async e=>{
                 const file = e.target.files?.[0]
                 if(!file) return
-                if(file.size > 5*1024*1024) { alert('File quá lớn! Tối đa 5MB.'); return }
-                const reader = new FileReader()
-                reader.onload = () => u('bgMusic', reader.result as string)
-                reader.readAsDataURL(file)
+                if(file.size > 15*1024*1024) { alert('File quá lớn! Tối đa 15MB.'); return }
+                const sbUrl = await uploadMusic(file)
+                if(sbUrl) { u('bgMusic', sbUrl) }
+                else {
+                  if(file.size > 5*1024*1024) { alert('Supabase chưa cấu hình. Base64 tối đa 5MB.'); return }
+                  const reader = new FileReader()
+                  reader.onload = () => u('bgMusic', reader.result as string)
+                  reader.readAsDataURL(file)
+                }
               }}/>
             </label>
             {cfg.bgMusic && <button onClick={()=>u('bgMusic','')} style={{background:'none',border:'none',color:'var(--red)',fontWeight:700,cursor:'pointer'}}>Xóa</button>}
@@ -565,6 +593,7 @@ export default function App() {
   const [cardAnim, setCardAnim] = useState<Record<number,string>>({})
   const [musicIdx, setMusicIdx] = useState(0) // sequential: 0 → 1 → 2 → ...
   const [showMusicAns, setShowMusicAns] = useState(false)
+  const [showOpenAns, setShowOpenAns] = useState(false)
   const tRef = useRef<any>(null)
   const bgRef = useRef<HTMLAudioElement|null>(null)
 
@@ -578,9 +607,9 @@ export default function App() {
     try {
       // Clear stale data from old versions
       const ver = LS.get('version')
-      if (ver !== 5) {
+      if (ver !== 6) {
         LS.del('gameState'); LS.del('config')
-        LS.set('version', 5)
+        LS.set('version', 6)
       }
       const saved = LS.get('config')
       if (saved && saved.teams && saved.questions) setCfg(saved)
@@ -608,7 +637,7 @@ export default function App() {
 
   useEffect(()=>{
     if(timerOn&&timer>0){tRef.current=setTimeout(()=>setTimer(t=>t-1),1000);return()=>clearTimeout(tRef.current)}
-    if(timerOn&&timer===0){setTimerOn(false);doWrong()}
+    if(timerOn&&timer===0){setTimerOn(false);notify('⏰ HẾT GIỜ!','error');setTimeout(()=>doWrong(),1200)}
   },[timerOn,timer])
 
   useEffect(()=>{if(floats.length>0){const t=setTimeout(()=>setFloats([]),2000);return()=>clearTimeout(t)}},[floats])
@@ -839,7 +868,7 @@ export default function App() {
       setQIdx(n);setTidx((tidx+1)%teams.length)
       setTimeout(()=>{setOverlay('');setPhase('start')},3500)
     } else {setQIdx(n);setTidx((tidx+1)%teams.length);setPhase('start')}
-    setPicks([]);setShowAns(false)
+    setPicks([]);setShowAns(false);setShowOpenAns(false)
   }
 
   // ══════ RENDER ══════
@@ -906,9 +935,21 @@ export default function App() {
           <button onClick={()=>q.answer===true?doCorrect():doWrong()} className="btn-hover" style={{padding:'24px 72px',fontSize:28,fontWeight:800,background:'var(--green)',color:'#fff',border:'none',borderRadius:20}}>✅ ĐÚNG</button>
           <button onClick={()=>q.answer===false?doCorrect():doWrong()} className="btn-hover" style={{padding:'24px 72px',fontSize:28,fontWeight:800,background:'var(--red)',color:'#fff',border:'none',borderRadius:20}}>❌ SAI</button>
         </div>}
-        {q.type==='open'&&<div style={{display:'flex',gap:20,justifyContent:'center'}}>
-          <button onClick={doCorrect} className="btn-hover" style={{padding:'20px 52px',fontSize:22,fontWeight:800,background:'var(--green)',color:'#fff',border:'none',borderRadius:16}}>✅ Đúng</button>
-          <button onClick={doWrong} className="btn-hover" style={{padding:'20px 52px',fontSize:22,fontWeight:800,background:'var(--red)',color:'#fff',border:'none',borderRadius:16}}>❌ Sai</button>
+        {q.type==='open'&&<div style={{textAlign:'center'}}>
+          {!showOpenAns ? (
+            <button onClick={()=>setShowOpenAns(true)} className="btn-hover" style={{padding:'16px 40px',fontSize:20,fontWeight:800,background:'#6c5ce715',color:'var(--accent)',border:'2px solid var(--accent)',borderRadius:16}}>👁️ Khui đáp án</button>
+          ) : (
+            <div>
+              <div style={{background:'#fef3c7',padding:'16px 28px',borderRadius:14,marginBottom:16,animation:'scaleIn .3s ease',display:'inline-block'}}>
+                <p style={{fontSize:14,color:'#92400e',fontWeight:600}}>ĐÁP ÁN:</p>
+                <p style={{fontSize:28,fontWeight:900,color:'#2d3436'}}>{q.answer}</p>
+              </div>
+              <div style={{display:'flex',gap:20,justifyContent:'center'}}>
+                <button onClick={()=>{setShowOpenAns(false);doCorrect()}} className="btn-hover" style={{padding:'20px 52px',fontSize:22,fontWeight:800,background:'var(--green)',color:'#fff',border:'none',borderRadius:16}}>✅ Đúng</button>
+                <button onClick={()=>{setShowOpenAns(false);doWrong()}} className="btn-hover" style={{padding:'20px 52px',fontSize:22,fontWeight:800,background:'var(--red)',color:'#fff',border:'none',borderRadius:16}}>❌ Sai</button>
+              </div>
+            </div>
+          )}
         </div>}
       </>}
       {showAns&&<div style={{background:'#f0fdf4',border:'2px solid var(--green)',borderRadius:18,padding:'24px 36px',textAlign:'center',marginTop:20,animation:'scaleIn .3s ease'}}>
