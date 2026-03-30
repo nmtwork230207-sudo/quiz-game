@@ -10,7 +10,7 @@ interface MusicItem { url: string; title: string }
 interface TriviaQ { q: string; a: string }
 interface GameConfig {
   teams: Team[]; questions: Question[]; rewardWheel: WheelItem[]; penaltyWheel: WheelItem[]
-  challengeQs: TriviaQ[]; musicQs: MusicItem[]; bgMusic: string
+  challengeQs: TriviaQ[]; musicQs: MusicItem[]; bgMusic: string; cardLayout?: CardData[]
 }
 interface CardData { id: number; matchKey: string; label: string; kind: 'normal' | 'jackpot' | 'bomb'; num: number }
 
@@ -29,36 +29,41 @@ const DEF_TEAMS: Team[] = [
 ]
 
 const DEF_QS: Question[] = [
-  {id:1,round:1,type:'tf',text:'Động lực là sự thôi thúc chủ quan dẫn đến hành động nhằm đáp ứng nhu cầu.',answer:true},
-  {id:2,round:1,type:'mc',text:'Theo Taylor, yếu tố nào là động lực chính?',options:['Quan hệ xã hội','Lương cao','Sự tôn trọng','Tự khẳng định'],answer:1},
-  {id:3,round:1,type:'tf',text:'Hawthorne: lương là yếu tố DUY NHẤT quyết định động lực.',answer:false},
-  {id:4,round:1,type:'mc',text:'Tháp Maslow gồm bao nhiêu bậc?',options:['3','4','5','6'],answer:2},
-  {id:5,round:1,type:'open',text:'Nhu cầu bậc thấp nhất theo Maslow?',answer:'Sinh lý'},
-  {id:6,round:1,type:'mc',text:'Thuyết ERG gồm mấy loại nhu cầu?',options:['2','3','4','5'],answer:1},
-  {id:7,round:1,type:'tf',text:'ERG: chỉ theo đuổi MỘT nhu cầu tại một thời điểm.',answer:false},
-  {id:8,round:1,type:'mc',text:'McClelland — 3 nhu cầu:',options:['Sinh lý, an toàn, xã hội','Thành đạt, liên minh, quyền lực','Tồn tại, quan hệ, phát triển','Lương, thưởng, MT'],answer:1},
-  {id:9,round:1,type:'mc',text:'6.4: bao nhiêu yếu tố ảnh hưởng hiệu quả lãnh đạo?',options:['2','3','4','5'],answer:2},
-  {id:10,round:1,type:'tf',text:'Lãnh đạo đạt hiệu quả chỉ cần ý chí, không cần nhận định đúng.',answer:false},
-  {id:11,round:2,type:'open',text:'Herzberg: 2 yếu tố?',answer:'Duy trì và Động viên'},
-  {id:12,round:2,type:'tf',text:'Herzberg: lương là yếu tố ĐỘNG VIÊN quan trọng nhất.',answer:false},
-  {id:13,round:2,type:'mc',text:'Thuyết Vroom năm?',options:['1954','1960','1964','1975'],answer:2},
-  {id:14,round:2,type:'tf',text:'Adams: không công bằng → năng suất giảm.',answer:true},
-  {id:15,round:2,type:'mc',text:'"Động lực = Sức hấp dẫn × Niềm tin" — thuyết?',options:['Maslow','Herzberg','Vroom','Adams'],answer:2},
-  {id:16,round:2,type:'open',text:'Yếu tố đầu tiên ảnh hưởng hiệu quả lãnh đạo?',answer:'Nhận định đúng'},
-  {id:17,round:2,type:'mc',text:'Kinh nghiệm ảnh hưởng lãnh đạo:',options:['Chỉ với lãnh đạo trẻ','Chọn PP phù hợp','Thay thế nhận định','Không bằng học vấn'],answer:1},
-  {id:18,round:2,type:'tf',text:'Nên dùng CÙNG MỘT phong cách cho tất cả NV.',answer:false},
-  {id:19,round:2,type:'mc',text:'NV trình độ cao → lãnh đạo:',options:['Kiểm soát chặt','Dân chủ','Không quan tâm','Độc đoán'],answer:1},
-  {id:20,round:2,type:'open',text:'Yếu tố thứ 4: quan hệ với?',answer:'Đồng nghiệp'},
-  {id:21,round:3,type:'mc',text:'ERG vs Maslow:',options:['ERG 5 bậc','Đồng thời nhiều NC','Chỉ quản trị','Không sinh lý'],answer:1},
-  {id:22,round:3,type:'open',text:'Lý thuyết cổ điển — F. W. ai?',answer:'Taylor'},
-  {id:23,round:3,type:'tf',text:'Porter-Lawler: thưởng → thỏa mãn → làm tốt hơn.',answer:true},
-  {id:24,round:3,type:'mc',text:'Porter-Lawler: KHÔNG thuộc mô hình?',options:['Khả năng thực hiện','Nhận thức NV','Phần thưởng','LĐ độc đoán'],answer:3},
-  {id:25,round:3,type:'mc',text:'So sánh đóng góp vs lợi ích?',options:['Maslow','Vroom','Adams','Taylor'],answer:2},
-  {id:26,round:3,type:'mc',text:'QĐ mới, NV trình độ thấp:',options:['Tự do','Dân chủ','Giám sát chặt','Không QL'],answer:2},
-  {id:27,round:3,type:'tf',text:'Maslow và ERG đều chia 5 bậc.',answer:false},
-  {id:28,round:3,type:'mc',text:'NV lương thấp hơn ĐN → giảm nỗ lực:',options:['Maslow','Herzberg','Adams','Vroom'],answer:2},
-  {id:29,round:3,type:'open',text:'Porter-Lawler: Giá trị PT → ___ → Nỗ lực → KQ',answer:'Khả năng thực hiện nhiệm vụ'},
-  {id:30,round:3,type:'mc',text:'CT giải thể, bỏ mặc NV. Vi phạm?',options:['Thiếu KN','Thiếu NĐ + quan hệ','Trình độ NV','Không VP'],answer:1},
+  // ═══ VÒNG 1: NHẬN BIẾT + HIỂU (Câu 1-10) ═══
+  {id:1,round:1,type:'tf',text:'Động lực là sự thôi thúc chủ quan dẫn đến hành động của con người nhằm đáp ứng những nhu cầu của họ.',answer:true},
+  {id:2,round:1,type:'mc',text:'Theo Frederick Winslow Taylor, yếu tố nào sau đây là động lực chính thúc đẩy nhân viên làm việc?',options:['Quan hệ xã hội trong tổ chức','Lương cao và hệ thống thưởng theo sản lượng','Sự tôn trọng từ đồng nghiệp','Nhu cầu tự khẳng định bản thân'],answer:1},
+  {id:3,round:1,type:'tf',text:'Lý thuyết tâm lý xã hội (thực nghiệm Hawthorne) cho rằng lương là yếu tố duy nhất quyết định động lực làm việc của nhân viên.',answer:false},
+  {id:4,round:1,type:'mc',text:'Tháp nhu cầu của Abraham Maslow được chia thành bao nhiêu bậc?',options:['3 bậc','4 bậc','5 bậc','6 bậc'],answer:2},
+  {id:5,round:1,type:'open',text:'Theo Maslow, nhu cầu ăn, uống, mặc, nhà ở... thuộc bậc nhu cầu thấp nhất, gọi là nhu cầu gì?',answer:'Sinh lý'},
+  {id:6,round:1,type:'mc',text:'Thuyết ERG của Clayton Alderfer phân chia nhu cầu con người thành bao nhiêu nhóm?',options:['2 nhóm','3 nhóm','4 nhóm','5 nhóm'],answer:1},
+  {id:7,round:1,type:'tf',text:'Thuyết ERG của Alderfer cho rằng con người chỉ có thể theo đuổi một loại nhu cầu tại một thời điểm nhất định.',answer:false},
+  {id:8,round:1,type:'mc',text:'Theo David McClelland, con người có ba nhu cầu cơ bản thúc đẩy hành động. Đó là:',options:['Sinh lý, an toàn và xã hội','Thành đạt, liên minh và quyền lực','Tồn tại, quan hệ và phát triển','Lương thưởng, phúc lợi và môi trường'],answer:1},
+  {id:9,round:1,type:'open',text:'Theo thuyết Herzberg, lương bổng thuộc nhóm yếu tố _______, còn cơ hội thăng tiến thuộc nhóm yếu tố _______.',answer:'Duy trì — Động viên'},
+  {id:10,round:1,type:'tf',text:'Theo thuyết Herzberg, khi các yếu tố duy trì (lương, điều kiện làm việc) được đảm bảo tốt, nhân viên sẽ tự động có động lực cao.',answer:false},
+
+  // ═══ VÒNG 2: HIỂU + PHÂN TÍCH (Câu 11-20) ═══
+  {id:11,round:2,type:'mc',text:'Nhà tâm lý học nào đã xây dựng thuyết mong đợi vào năm 1964?',options:['Frederick Herzberg','Clayton Alderfer','Victor H. Vroom','J. Stacy Adams'],answer:2},
+  {id:12,round:2,type:'tf',text:'Theo thuyết công bằng của Adams, khi người lao động cảm thấy mức đãi ngộ không tương xứng so với đồng nghiệp, năng suất có xu hướng giảm.',answer:true},
+  {id:13,round:2,type:'mc',text:'Công thức "Động lực = Sức hấp dẫn của phần thưởng × Niềm tin vào khả năng đạt kết quả" thuộc thuyết nào?',options:['Thuyết Maslow','Thuyết Herzberg','Thuyết mong đợi Vroom','Thuyết công bằng Adams'],answer:2},
+  {id:14,round:2,type:'mc',text:'Điểm khác biệt cơ bản nhất giữa thuyết ERG (Alderfer) và thuyết Maslow là gì?',options:['ERG có nhiều bậc hơn Maslow','ERG cho phép đồng thời theo đuổi nhiều nhóm nhu cầu','ERG không đề cập nhu cầu sinh lý','ERG chỉ áp dụng cho cấp quản lý'],answer:1},
+  {id:15,round:2,type:'open',text:'Người được xem là cha đẻ của lý thuyết quản lý khoa học, đặt nền móng cho lý thuyết động lực cổ điển, là Frederick Winslow _______.',answer:'Taylor'},
+  {id:16,round:2,type:'tf',text:'Thuyết Porter-Lawler: khi nhân viên nhận phần thưởng hợp lý tương xứng kết quả, họ sẽ thỏa mãn và tiếp tục nỗ lực.',answer:true},
+  {id:17,round:2,type:'mc',text:'Trong mô hình Porter-Lawler, yếu tố nào KHÔNG thuộc các thành phần?',options:['Khả năng thực hiện nhiệm vụ','Nhận thức về vai trò và nhiệm vụ','Phần thưởng nội tại và ngoại tại','Phong cách lãnh đạo độc đoán'],answer:3},
+  {id:18,round:2,type:'mc',text:'Thuyết nào cho rằng động lực xuất phát từ việc so sánh tỉ lệ đóng góp/lợi ích của mình với người khác?',options:['Thuyết Maslow','Thuyết Vroom','Thuyết công bằng Adams','Thuyết cổ điển Taylor'],answer:2},
+  {id:19,round:2,type:'mc',text:'Hiệu quả lãnh đạo chịu ảnh hưởng của bao nhiêu yếu tố chính?',options:['2 yếu tố','3 yếu tố','4 yếu tố','5 yếu tố'],answer:2},
+  {id:20,round:2,type:'tf',text:'Một nhà lãnh đạo dù có ý chí mạnh mẽ nhưng không nhận định đúng tình huống vẫn có thể đạt hiệu quả cao.',answer:false},
+
+  // ═══ VÒNG 3: LÃNH ĐẠO + VẬN DỤNG (Câu 21-30) ═══
+  {id:21,round:3,type:'open',text:'Yếu tố quan trọng hàng đầu giúp nhà lãnh đạo xác định đúng mục tiêu và hướng đi cho tổ chức là gì?',answer:'Nhận định đúng'},
+  {id:22,round:3,type:'mc',text:'Kinh nghiệm của nhà lãnh đạo ảnh hưởng đến hiệu quả chủ yếu theo hướng nào?',options:['Chỉ có giá trị với lãnh đạo trẻ','Giúp lựa chọn phương pháp và phong cách phù hợp','Có thể thay thế hoàn toàn nhận định đúng','Không quan trọng bằng bằng cấp học thuật'],answer:1},
+  {id:23,round:3,type:'tf',text:'Nhà lãnh đạo nên áp dụng cùng một phong cách thống nhất cho toàn bộ nhân viên, bất kể trình độ.',answer:false},
+  {id:24,round:3,type:'mc',text:'Khi nhân viên có trình độ chuyên môn cao, nhà lãnh đạo nên điều chỉnh theo hướng nào?',options:['Tăng cường kiểm soát chặt','Áp dụng phong cách dân chủ, trao quyền','Giữ nguyên phong cách hiện tại','Áp dụng lãnh đạo độc đoán'],answer:1},
+  {id:25,round:3,type:'open',text:'Bốn yếu tố ảnh hưởng hiệu quả lãnh đạo: nhận định đúng, kinh nghiệm, trình độ NV và _______.',answer:'Quan hệ với đồng nghiệp'},
+  {id:26,round:3,type:'mc',text:'Anh Nam — quản đốc mới, toàn bộ NV trình độ thấp, chưa quen quy trình. Phong cách nào phù hợp nhất?',options:['Tự do — ít can thiệp','Dân chủ — giao quyền nhiều','Giám sát chặt, hướng dẫn cụ thể từng bước','Không cần quản lý'],answer:2},
+  {id:27,round:3,type:'tf',text:'Thuyết Maslow và thuyết ERG của Alderfer đều phân chia nhu cầu con người thành 5 bậc.',answer:false},
+  {id:28,round:3,type:'mc',text:'Chị Lan làm ngang đồng nghiệp nhưng lương thấp hơn → giảm nhiệt tình. Giải thích bởi thuyết nào?',options:['Thuyết Maslow','Thuyết Herzberg','Thuyết công bằng Adams','Thuyết mong đợi Vroom'],answer:2},
+  {id:29,round:3,type:'open',text:'Theo Porter-Lawler, để NV nỗ lực cần: phần thưởng hấp dẫn + NV phải có _______ để hoàn thành.',answer:'Khả năng thực hiện nhiệm vụ'},
+  {id:30,round:3,type:'mc',text:'Công ty liên tục đổi chiến lược sai, không lắng nghe nội bộ, thua lỗ. Hai yếu tố lãnh đạo nào thiếu hụt?',options:['Kinh nghiệm và trình độ NV','Nhận định đúng và quan hệ với đồng nghiệp','Trình độ NV và kinh nghiệm','Không yếu tố nào thiếu'],answer:1},
 ]
 
 const DEF_REWARD: WheelItem[] = [
@@ -89,6 +94,9 @@ const DEF_CFG: GameConfig = {
 const NORMALS = [
   {pid:'maslow',lb:'🏔️ Maslow'},{pid:'herzberg',lb:'⚖️ Herzberg'},{pid:'vroom',lb:'🎯 Vroom'},
   {pid:'adams',lb:'⚡ Adams'},{pid:'taylor',lb:'🏭 Taylor'},{pid:'erg',lb:'🔄 ERG'},{pid:'porter',lb:'📊 Porter'},
+  {pid:'hawthorne',lb:'🎓 Hawthorne'},{pid:'mcclelland',lb:'💡 McClelland'},
+  {pid:'congbang',lb:'⚖️ Công bằng'},{pid:'lanhdao',lb:'👔 Lãnh đạo'},{pid:'thandat',lb:'🏅 Thành đạt'},
+  {pid:'dongvien',lb:'🔥 Động viên'},{pid:'duytri',lb:'🛡️ Duy trì'},
 ]
 
 const RC: Record<number,{name:string;timer:number;mult:number;bomb:boolean;jack:boolean}> = {
@@ -116,8 +124,8 @@ function buildCards(): CardData[] {
   })
   // 3 cặp NỔ HỦ = 6 thẻ, ALL share matchKey "JACKPOT"
   for (let i = 0; i < 6; i++) cards.push({ id: id++, matchKey: 'JACKPOT', label: '🎰', kind: 'jackpot', num: 0 })
-  // 2 cặp BOM = 4 thẻ, ALL share matchKey "BOMB"
-  for (let i = 0; i < 4; i++) cards.push({ id: id++, matchKey: 'BOMB', label: '💣', kind: 'bomb', num: 0 })
+  // 3 cặp BOM = 6 thẻ, ALL share matchKey "BOMB"
+  for (let i = 0; i < 6; i++) cards.push({ id: id++, matchKey: 'BOMB', label: '💣', kind: 'bomb', num: 0 })
   const shuffled = shuffle(cards)
   // Assign numbers 1..N
   shuffled.forEach((c, i) => { c.num = i + 1 })
@@ -235,9 +243,9 @@ function MemCard({ card, isUp, isMatch, onClick, anim }: { card: CardData; isUp:
       fontWeight:900,color:'var(--text)',textAlign:'center',padding:8,
       transform:isUp&&!isMatch?'scale(1.08)':'scale(1)',
       animation: anim || (isUp&&!isMatch ? 'cardFlip .6s ease' : 'none'),
-      fontSize: show ? (card.label.length > 6 ? 18 : 36) : 28,
+      fontSize: show ? (card.label.length > 6 ? 13 : 26) : 22,
     }}>
-      {show ? <span>{card.label}</span> : <span style={{ fontSize:32,color:'#fff',fontWeight:900 }}>{card.num}</span>}
+      {show ? <span>{card.label}</span> : <span style={{ fontSize:26,color:'#fff',fontWeight:900 }}>{card.num}</span>}
     </div>
   )
 }
@@ -248,7 +256,7 @@ function SettingsScreen({ cfg, setCfg, onBack }: { cfg: GameConfig; setCfg: (fn:
   const u = (key: string, val: any) => setCfg(c => ({ ...c, [key]: val }))
   const IS: React.CSSProperties = { width:'100%',padding:'14px 18px',fontSize:16,border:'2px solid #e2e8f0',borderRadius:14,fontFamily:'Nunito',transition:'border .2s' }
   const CS: React.CSSProperties = { background:'#fff',padding:22,borderRadius:18,border:'2px solid #e2e8f0',marginBottom:14 }
-  const tabs = [{id:'teams',icon:'👥',l:'Đội chơi'},{id:'questions',icon:'📋',l:'Câu hỏi'},{id:'reward',icon:'🎰',l:'V.quay Thưởng'},
+  const tabs = [{id:'teams',icon:'👥',l:'Đội chơi'},{id:'questions',icon:'📋',l:'Câu hỏi'},{id:'cards',icon:'🃏',l:'Sắp xếp thẻ'},{id:'reward',icon:'🎰',l:'V.quay Thưởng'},
     {id:'penalty',icon:'⚠️',l:'V.quay Phạt'},{id:'challenges',icon:'❓',l:'Câu hỏi phạt'},{id:'music',icon:'🎵',l:'Đoán nhạc'},{id:'bg',icon:'🔊',l:'Nhạc nền'}]
   const save = () => { LS.set('config', cfg); alert('Đã lưu!') }
 
@@ -299,6 +307,8 @@ function SettingsScreen({ cfg, setCfg, onBack }: { cfg: GameConfig; setCfg: (fn:
             </div>)}
           </div>
         </div>}
+
+        {tab==='cards' && <CardArrangeTab cfg={cfg} setCfg={setCfg}/>}
 
         {tab==='challenges' && <div>
           <h2 style={{fontSize:24,fontWeight:800,marginBottom:12}}>Câu hỏi phạt / bonus</h2>
@@ -402,6 +412,87 @@ function WheelEditor({ items, onChange, label, isPenalty }: { items: WheelItem[]
   </div>
 }
 
+// ══════ CARD ARRANGE TAB ══════
+function CardArrangeTab({ cfg, setCfg }: { cfg: GameConfig; setCfg: (fn: (c: GameConfig) => GameConfig) => void }) {
+  const [selected, setSelected] = useState<number|null>(null)
+  const [previewCards, setPreviewCards] = useState<CardData[]>(() => cfg.cardLayout || buildCards())
+
+  const swapCards = (idx: number) => {
+    if(selected === null) { setSelected(idx); return }
+    if(selected === idx) { setSelected(null); return }
+    const newCards = [...previewCards]
+    const temp = newCards[selected]
+    newCards[selected] = newCards[idx]
+    newCards[idx] = temp
+    // Re-number
+    newCards.forEach((c, i) => { c.num = i + 1 })
+    setPreviewCards(newCards)
+    setSelected(null)
+  }
+
+  const doShuffle = () => {
+    const shuffled = shuffle([...previewCards])
+    shuffled.forEach((c, i) => { c.num = i + 1 })
+    setPreviewCards(shuffled)
+    setSelected(null)
+  }
+
+  const doReset = () => {
+    const fresh = buildCards()
+    setPreviewCards(fresh)
+    setSelected(null)
+  }
+
+  const doSave = () => {
+    setCfg(c => ({ ...c, cardLayout: previewCards }))
+    alert('Đã lưu vị trí thẻ!')
+  }
+
+  const doClear = () => {
+    setCfg(c => ({ ...c, cardLayout: undefined }))
+    alert('Đã xóa — game sẽ xáo trộn ngẫu nhiên khi bắt đầu.')
+  }
+
+  const kindColors: Record<string,string> = { normal:'#6c5ce7', jackpot:'#f39c12', bomb:'#e74c3c' }
+  const kindBg: Record<string,string> = { normal:'linear-gradient(135deg,#6c5ce7,#a855f7)', jackpot:'linear-gradient(135deg,#ffeaa7,#fdcb6e)', bomb:'linear-gradient(135deg,#fab1a0,#ff6b6b)' }
+
+  return <div>
+    <h2 style={{fontSize:24,fontWeight:800,marginBottom:8}}>🃏 Sắp xếp thẻ</h2>
+    <p style={{fontSize:14,color:'var(--mute)',marginBottom:8}}>
+      Bấm thẻ 1 → bấm thẻ 2 → đổi chỗ. Tổng: <b>{previewCards.length} thẻ</b> (
+      {previewCards.filter(c=>c.kind==='normal').length} thường,
+      {' '}{previewCards.filter(c=>c.kind==='jackpot').length} 🎰 nổ hủ,
+      {' '}{previewCards.filter(c=>c.kind==='bomb').length} 💣 bom)
+    </p>
+    <div style={{display:'flex',gap:10,marginBottom:20,flexWrap:'wrap'}}>
+      <button onClick={doShuffle} className="btn-hover" style={{padding:'10px 22px',fontSize:14,fontWeight:700,background:'var(--accent)',color:'#fff',border:'none',borderRadius:10}}>🔀 Xáo trộn</button>
+      <button onClick={doReset} className="btn-hover" style={{padding:'10px 22px',fontSize:14,fontWeight:700,background:'#f1f5f9',color:'var(--sub)',border:'none',borderRadius:10}}>🔄 Tạo bảng mới</button>
+      <button onClick={doSave} className="btn-hover" style={{padding:'10px 22px',fontSize:14,fontWeight:700,background:'#00b894',color:'#fff',border:'none',borderRadius:10}}>💾 Lưu vị trí</button>
+      <button onClick={doClear} className="btn-hover" style={{padding:'10px 22px',fontSize:14,fontWeight:700,background:'#ff6b6b',color:'#fff',border:'none',borderRadius:10}}>🗑️ Xóa (random lại)</button>
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:7,maxWidth:900,margin:'0 auto'}}>
+      {previewCards.map((c, idx) => {
+        const isSel = selected === idx
+        return <div key={idx} onClick={()=>swapCards(idx)} style={{
+          aspectRatio:'1/1',borderRadius:16,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',
+          background:kindBg[c.kind],cursor:'pointer',transition:'all .25s cubic-bezier(.34,1.56,.64,1)',
+          border:isSel?'4px solid #2d3436':'3px solid transparent',
+          transform:isSel?'scale(1.12)':'scale(1)',
+          boxShadow:isSel?'0 8px 28px rgba(0,0,0,.25)':'0 3px 12px rgba(0,0,0,.08)',
+          color:c.kind==='jackpot'?'#2d3436':'#fff',fontWeight:800,fontSize:12,textAlign:'center',padding:4,gap:2,
+          opacity: selected!==null && !isSel ? 0.7 : 1,
+        }}>
+          <span style={{fontSize:20}}>{c.label}</span>
+          <span style={{fontSize:10,opacity:.7}}>#{c.num}</span>
+        </div>
+      })}
+    </div>
+    {selected !== null && <p style={{textAlign:'center',marginTop:14,fontSize:14,color:'var(--accent)',fontWeight:700,animation:'pulse 1s infinite'}}>
+      Đã chọn thẻ #{previewCards[selected].num} — Bấm thẻ khác để đổi chỗ
+    </p>}
+  </div>
+}
+
 // ══════ RULES ══════
 function RulesScreen({ onBack, teams }: { onBack: () => void; teams: Team[] }) {
   return <div style={{minHeight:'100vh',background:'linear-gradient(180deg,#f0f2f8,#fff)',padding:36,maxWidth:840,margin:'0 auto'}}>
@@ -425,8 +516,8 @@ function RulesScreen({ onBack, teams }: { onBack: () => void; teams: Team[] }) {
         • <strong>Bất kỳ 2 thẻ 🎰 nào</strong> đều khớp nhau (không cần cùng cặp).
       </p>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:14}}>
-        {[{e:'🎴',n:'Thẻ thường',d:`+10đ × hệ số\n+ Quay thưởng`,c:'#00b894'},
-          {e:'💣',n:'Bom (4 thẻ)',d:`-30đ × hệ số\nLuôn active`,c:'#e74c3c'},
+        {[{e:'🎴',n:'Thẻ thường (28)',d:`+10đ × hệ số\n+ Quay thưởng`,c:'#00b894'},
+          {e:'💣',n:'Bom (6 thẻ)',d:`-30đ × hệ số\nLuôn active`,c:'#e74c3c'},
           {e:'🎰',n:'Nổ Hủ (6 thẻ)',d:`+100đ × hệ số\nLuôn active`,c:'#f39c12'}
         ].map((c,i) => <div key={i} style={{background:'#fff',padding:22,borderRadius:18,textAlign:'center',border:`2px solid ${c.c}25`}}>
           <div style={{fontSize:44,marginBottom:8}}>{c.e}</div>
@@ -472,7 +563,7 @@ export default function App() {
   const [overlay, setOverlay] = useState('')
   const [floats, setFloats] = useState<{val:number;color:string;id:number}[]>([])
   const [cardAnim, setCardAnim] = useState<Record<number,string>>({})
-  const [usedMusic, setUsedMusic] = useState<Set<number>>(new Set())
+  const [musicIdx, setMusicIdx] = useState(0) // sequential: 0 → 1 → 2 → ...
   const [showMusicAns, setShowMusicAns] = useState(false)
   const tRef = useRef<any>(null)
   const bgRef = useRef<HTMLAudioElement|null>(null)
@@ -487,9 +578,9 @@ export default function App() {
     try {
       // Clear stale data from old versions
       const ver = LS.get('version')
-      if (ver !== 3) {
+      if (ver !== 5) {
         LS.del('gameState'); LS.del('config')
-        LS.set('version', 3)
+        LS.set('version', 5)
       }
       const saved = LS.get('config')
       if (saved && saved.teams && saved.questions) setCfg(saved)
@@ -537,7 +628,9 @@ export default function App() {
   const startGame = () => {
     const t = cfg.teams.map(x=>({...x,score:0}))
     setTeams(t);setTidx(0);setRound(1);setQIdx(0);setPhase('start')
-    setCards(buildCards());setFaceUp(new Set());setMatched(new Set());setPicks([]);setCardAnim({});setUsedMusic(new Set())
+    // Use saved card layout if available, otherwise random
+    const gameCards = cfg.cardLayout ? cfg.cardLayout.map((c,i)=>({...c,num:i+1})) : buildCards()
+    setCards(gameCards);setFaceUp(new Set());setMatched(new Set());setPicks([]);setCardAnim({});setMusicIdx(0)
     setScreen('game')
   }
   const resumeGame = () => {
@@ -695,27 +788,25 @@ export default function App() {
     setModal({k:'quiz',q:pool[Math.floor(Math.random()*pool.length)],rw:isR,v:val})
   }
 
-  // Music: random without repeat
+  // Music: sequential from first to last, pause bg music when playing
   const openMusic = (val: number) => {
-    const pool=cfg.musicQs.filter((m,i)=>(m.url||m.title)&&!usedMusic.has(i))
-    if(!pool.length){
-      // Reset if all used
-      setUsedMusic(new Set())
-      const allPool=cfg.musicQs.filter(m=>m.url||m.title)
-      if(!allPool.length){notify('Chưa có nhạc!','info');setTimeout(()=>endTurn(),1000);return}
-      const pick=allPool[Math.floor(Math.random()*allPool.length)]
-      const idx=cfg.musicQs.indexOf(pick)
-      setUsedMusic(new Set([idx]))
-      setShowMusicAns(false)
-      setModal({k:'music',q:pick,v:val})
-      return
-    }
-    const pickIdx=Math.floor(Math.random()*pool.length)
-    const pick=pool[pickIdx]
-    const realIdx=cfg.musicQs.indexOf(pick)
-    setUsedMusic(prev=>new Set(prev).add(realIdx))
+    const allMusic = cfg.musicQs.filter(m => m.url || m.title)
+    if(!allMusic.length) { notify('Chưa có nhạc!','info'); setTimeout(()=>endTurn(),1000); return }
+    // Get current index, loop back to 0 if exceeded
+    const idx = musicIdx % allMusic.length
+    const pick = allMusic[idx]
+    setMusicIdx(idx + 1)
     setShowMusicAns(false)
-    setModal({k:'music',q:pick,v:val})
+    // Pause background music
+    bgRef.current?.pause()
+    setModal({k:'music', q:pick, v:val})
+  }
+
+  const closeModal = () => {
+    const isMusic = modal?.k === 'music'
+    setModal(null); setShowMusicAns(false)
+    // Resume bg music if was paused for music guessing
+    if(isMusic && cfg.bgMusic && bgRef.current) bgRef.current.play().catch(()=>{})
   }
 
   const mOk = () => {
@@ -723,16 +814,16 @@ export default function App() {
       if(modal.rw){addPts(team.id,Math.abs(modal.v));notify(`+${Math.abs(modal.v)}đ!`,'success');showFloat(Math.abs(modal.v))}
       else notify('Thoát phạt!','success')
     }
-    setModal(null);setShowMusicAns(false);setTimeout(()=>endTurn(),1000)
+    closeModal();setTimeout(()=>endTurn(),1000)
   }
   const mFail = () => {
     if(modal.k==='quiz'||modal.k==='music'){
       if(!modal.rw){addPts(team.id,modal.v);notify(`${modal.v}đ!`,'error');showFloat(modal.v,'#ff6b6b')}
       else notify('Tiếc!','info')
     }
-    setModal(null);setShowMusicAns(false);setTimeout(()=>endTurn(),1000)
+    closeModal();setTimeout(()=>endTurn(),1000)
   }
-  const mSkip = () => {setModal(null);setShowMusicAns(false);setTimeout(()=>endTurn(),800)}
+  const mSkip = () => {closeModal();setTimeout(()=>endTurn(),800)}
   const giveTeam = (tid: number) => {
     addPts(tid,modal.v);const t=teams.find(x=>x.id===tid)!
     notify(`🎁 ${t.name} +${modal.v}đ!`,'info');showFloat(modal.v,'#fdcb6e')
@@ -849,7 +940,7 @@ export default function App() {
           <div style={{textAlign:'center',marginBottom:16}}>
             <span style={{fontSize:24,fontWeight:800,color:team.color,background:`${team.color}10`,padding:'12px 32px',borderRadius:16,border:`2px solid ${team.color}25`}}>🃏 {team.name} — Chọn 2 thẻ! ({fd} úp) <MultBadge m={mult}/></span>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:10,maxWidth:1100,margin:'0 auto'}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:8,maxWidth:1200,margin:'0 auto'}}>
             {cards.map(c=><MemCard key={c.id} card={c} isUp={faceUp.has(c.id)} isMatch={matched.has(c.id)} onClick={()=>clickCard(c.id)} anim={cardAnim[c.id]}/>)}
           </div>
           <div style={{textAlign:'center',marginTop:16}}><button onClick={()=>{setPicks([]);endTurn()}} className="btn-hover" style={{padding:'10px 24px',fontSize:14,fontWeight:700,background:'#f1f5f9',color:'var(--sub)',border:'none',borderRadius:12}}>⏭️ Bỏ qua</button></div>
