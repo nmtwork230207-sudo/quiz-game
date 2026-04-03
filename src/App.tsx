@@ -356,7 +356,7 @@ function SettingsScreen({ cfg, setCfg, onBack }: { cfg: GameConfig; setCfg: (fn:
                     const n=[...cfg.musicQs]; n[i]={...n[i], url:sbUrl, title:n[i].title||file.name.replace(/\.[^.]+$/,'')}; u('musicQs',n)
                   } else {
                     // Fallback: base64 (max ~5MB practical)
-                    if(file.size > 5*1024*1024) { alert('Supabase chưa cấu hình. File base64 tối đa 5MB.'); return }
+                    if(file.size > 5*1024*1024) { alert('Upload Supabase thất bại. File base64 tối đa 5MB.'); return }
                     const reader = new FileReader()
                     reader.onload = () => {
                       const n=[...cfg.musicQs]; n[i]={...n[i], url:reader.result as string, title:n[i].title||file.name.replace(/\.[^.]+$/,'')}; u('musicQs',n)
@@ -387,7 +387,7 @@ function SettingsScreen({ cfg, setCfg, onBack }: { cfg: GameConfig; setCfg: (fn:
                 const sbUrl = await uploadMusic(file)
                 if(sbUrl) { u('bgMusic', sbUrl) }
                 else {
-                  if(file.size > 5*1024*1024) { alert('Supabase chưa cấu hình. Base64 tối đa 5MB.'); return }
+                  if(file.size > 5*1024*1024) { alert('Upload Supabase thất bại. Base64 tối đa 5MB.'); return }
                   const reader = new FileReader()
                   reader.onload = () => u('bgMusic', reader.result as string)
                   reader.readAsDataURL(file)
